@@ -23,7 +23,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="product-card-meta">
           <span className="badge badge-primary">{product.category}</span>
           {product.stock < 5 && product.stock > 0 ? (
-            <span className="badge badge-success" style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.1)' }}>
+            <span className="badge" style={{ color: '#9a3412', borderColor: '#1e293b', background: '#ffedd5', fontWeight: 800 }}>
               Only {product.stock} Left!
             </span>
           ) : null}

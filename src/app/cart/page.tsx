@@ -15,29 +15,31 @@ export default function CartPage() {
           maxWidth: '600px',
           margin: '0 auto',
           padding: '4rem 2rem',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-xl)',
-          background: 'var(--bg-surface)'
+          border: '3px solid #1e293b',
+          boxShadow: '4px 4px 0px #1e293b',
+          borderRadius: 'var(--radius-lg)',
+          background: '#ffffff'
         }}>
           <div style={{
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            background: 'var(--primary-glow)',
-            color: 'var(--primary)',
+            background: '#fef9c3',
+            color: '#1e293b',
+            border: '2px solid #1e293b',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 1.5rem auto'
           }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '32px', height: '32px' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '32px', height: '32px' }}>
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
           </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.75rem' }}>Your Shopping Cart is Empty</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.95rem' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.75rem', color: '#1e293b' }}>Your Shopping Cart is Empty ☀️</h2>
+          <p style={{ color: '#4b5563', marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 600 }}>
             It looks like you haven't added any items to your shopping cart yet. Explore our high-tech collections to get started!
           </p>
           <Link href="/" className="btn btn-primary">
@@ -76,9 +78,10 @@ export default function CartPage() {
                 <div key={item.id} className="cart-item-card" style={{
                   display: 'flex',
                   alignItems: 'center',
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-lg)',
+                  background: '#ffffff',
+                  border: '2px solid #1e293b',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: '3px 3px 0px #1e293b',
                   padding: '1.25rem',
                   gap: '1.25rem',
                   position: 'relative'
@@ -90,12 +93,12 @@ export default function CartPage() {
 
                   {/* Item Info */}
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.25rem' }}>
                       <Link href={`/products/${item.id}`} style={{ color: 'var(--text-primary)' }}>
                         {item.name}
                       </Link>
                     </h3>
-                    <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
                       ₹{item.price.toFixed(2)}
                     </p>
 
@@ -106,19 +109,20 @@ export default function CartPage() {
                         style={{
                           width: '32px',
                           height: '32px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: 'var(--bg-surface-elevated)',
-                          border: '1px solid var(--border-subtle)',
+                          borderRadius: '4px',
+                          background: '#ffffff',
+                          border: '2px solid #1e293b',
                           color: 'var(--text-primary)',
                           fontWeight: 'bold',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          cursor: 'pointer'
                         }}
                       >
                         -
                       </button>
-                      <span style={{ width: '40px', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem' }}>
+                      <span style={{ width: '40px', textAlign: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
                         {item.quantity}
                       </span>
                       <button
@@ -126,20 +130,21 @@ export default function CartPage() {
                         style={{
                           width: '32px',
                           height: '32px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: 'var(--bg-surface-elevated)',
-                          border: '1px solid var(--border-subtle)',
+                          borderRadius: '4px',
+                          background: '#ffffff',
+                          border: '2px solid #1e293b',
                           color: 'var(--text-primary)',
                           fontWeight: 'bold',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          cursor: 'pointer'
                         }}
                       >
                         +
                       </button>
                       
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: '0.5rem', fontWeight: 600 }}>
                         Max stock: {item.stock}
                       </span>
                     </div>
@@ -154,17 +159,18 @@ export default function CartPage() {
                         color: 'var(--text-muted)',
                         fontSize: '1.25rem',
                         padding: '0.25rem',
-                        transition: 'color var(--transition-fast)'
+                        transition: 'color var(--transition-fast)',
+                        cursor: 'pointer'
                       }}
                       title="Remove item"
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--error)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
                         <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                       </svg>
                     </button>
-                    <p style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <p style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text-primary)' }}>
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -174,15 +180,16 @@ export default function CartPage() {
 
             {/* Right side: Summary panel */}
             <div className="cart-summary-panel" style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
+              background: '#ffffff',
+              border: '3px solid #1e293b',
+              boxShadow: '4px 4px 0px #1e293b',
               borderRadius: 'var(--radius-lg)',
               padding: '1.75rem',
               height: 'fit-content',
               position: 'sticky',
               top: '100px'
             }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: '1.25rem', borderBottom: '2.5px solid #1e293b', paddingBottom: '0.75rem', color: '#1e293b' }}>
                 Order Summary
               </h2>
               

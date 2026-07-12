@@ -1,38 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOrder } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { items, customerName, email, address, city, postalCode } = body;
 
-    // Basic request validation
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Order must contain at least one item.' }, { status: 400 });
-    }
-    if (!customerName || !email || !address || !city || !postalCode) {
-      return NextResponse.json({ error: 'All shipping information fields are required.' }, { status: 400 });
-    }
-
-    // Call our monolithic database order creator
-    // This will perform stock validation, update stock levels, and write the order
-    const completedOrder = await createOrder({
-      items,
-      customerName,
-      email,
-      address,
-      city,
-      postalCode,
+    // Call our Buy microservice via the API Gateway on port 5000
+    const gatewayRes = await fetch('http://localhost:5000/api/buy/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
 
-    // Simulating instant payment gateway success and returning order details
+    const data = await gatewayRes.json();
+
+    if (!gatewayRes.ok) {
+      return NextResponse.json({ error: data.error || 'Checkout failed.' }, { status: gatewayRes.status });
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Payment processed successfully! Your order has been placed.',
-      order: completedOrder
+      order: data.order
     });
   } catch (error: any) {
     console.error('Checkout error:', error);
-    return NextResponse.json({ error: error.message || 'An error occurred during checkout.' }, { status: 400 });
+    return NextResponse.json({ error: error.message || 'An error occurred during checkout.' }, { status: 500 });
   }
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { getProductById } from '@/lib/db';
 import ProductImage from '@/components/ProductImage';
 import ProductActions from '@/components/ProductActions';
 
@@ -12,7 +11,16 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const resolvedParams = await params;
-  const product = await getProductById(resolvedParams.id);
+  
+  let product: any = null;
+  try {
+    const res = await fetch(`http://localhost:5000/api/search/products/${resolvedParams.id}`, { cache: 'no-store' });
+    if (res.ok) {
+      product = await res.json();
+    }
+  } catch (err) {
+    console.error('Failed to fetch product details:', err);
+  }
 
   if (!product) {
     return (

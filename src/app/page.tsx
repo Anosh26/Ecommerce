@@ -1,5 +1,3 @@
-import React from 'react';
-import { searchProducts, getCategories } from '@/lib/search';
 import ProductCard from '@/components/ProductCard';
 import CatalogFilters from '@/components/CatalogFilters';
 
@@ -21,58 +19,62 @@ export default async function Home({ searchParams }: PageProps) {
   const minPrice = params.minPrice ? parseFloat(params.minPrice) : undefined;
   const maxPrice = params.maxPrice ? parseFloat(params.maxPrice) : undefined;
 
-  // Search products inside the monolith database
-  const products = await searchProducts({
-    query,
-    category,
-    sortBy,
-    minPrice,
-    maxPrice,
-  });
+  // Fetch products and categories via API Gateway on port 5000
+  let products: any[] = [];
+  let categories: string[] = ['All'];
 
-  const categories = await getCategories();
+  try {
+    const searchParamsObj = new URLSearchParams();
+    if (query) searchParamsObj.set('query', query);
+    if (category) searchParamsObj.set('category', category);
+    if (sortBy) searchParamsObj.set('sortBy', sortBy);
+    if (minPrice !== undefined && !isNaN(minPrice)) searchParamsObj.set('minPrice', minPrice.toString());
+    if (maxPrice !== undefined && !isNaN(maxPrice)) searchParamsObj.set('maxPrice', maxPrice.toString());
+
+    const productsRes = await fetch(`http://localhost:5000/api/search/products?${searchParamsObj.toString()}`, { cache: 'no-store' });
+    if (productsRes.ok) {
+      products = await productsRes.json();
+    }
+
+    const categoriesRes = await fetch('http://localhost:5000/api/search/categories', { cache: 'no-store' });
+    if (categoriesRes.ok) {
+      categories = await categoriesRes.json();
+    }
+  } catch (err) {
+    console.error('Failed to fetch from API Gateway:', err);
+  }
 
   return (
     <div style={{ paddingTop: '2rem' }}>
       {/* Hero Banner Section */}
       <div className="hero-banner" style={{
-        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-xl)',
+        background: '#fefcbd',
+        border: '3px solid #1e293b',
+        boxShadow: '4px 4px 0px #1e293b',
+        borderRadius: 'var(--radius-lg)',
         padding: '3rem 2rem',
         marginBottom: '2.5rem',
         position: 'relative',
         overflow: 'hidden'
       }}>
-        <div style={{
-          position: 'absolute',
-          top: '-50%',
-          right: '-20%',
-          width: '500px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
         <h1 style={{
           fontSize: '2.75rem',
-          fontWeight: 800,
+          fontWeight: 900,
           marginBottom: '1rem',
           letterSpacing: '-0.03em',
-          background: 'linear-gradient(135deg, #ffffff 40%, var(--primary) 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
+          color: '#064e3b',
           lineHeight: '1.2'
         }}>
-          Discover Future Techwear & Accessories
+          Discover Future Techwear & Accessories ☀️
         </h1>
         <p style={{
-          color: 'var(--text-secondary)',
+          color: '#1e293b',
           fontSize: '1.1rem',
-          maxWidth: '600px',
+          maxWidth: '650px',
           lineHeight: '1.6',
-          fontWeight: 400
+          fontWeight: 600
         }}>
-          Explore our handpicked collection of high-fidelity gadgets, minimalist apparel, and cyber footwear. Built entirely in a fast, monolithic system.
+          Explore our handpicked collection of high-fidelity gadgets, minimalist apparel, and cyber footwear. Built entirely in a fast, multi-threaded microservices architecture.
         </p>
       </div>
 

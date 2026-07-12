@@ -33,11 +33,11 @@ export default function ProductActions({ product }: ProductActionsProps) {
       {!isOutOfStock && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Quantity:</span>
-          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', borderRadius: 'var(--radius-sm)', border: '2px solid #1e293b', overflow: 'hidden' }}>
             <button 
               type="button" 
               onClick={decrement}
-              style={{ padding: '0.75rem 1rem', background: 'transparent', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}
+              style={{ padding: '0.5rem 1rem', background: 'transparent', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
             >
               -
             </button>
@@ -50,9 +50,9 @@ export default function ProductActions({ product }: ProductActionsProps) {
                 border: 'none',
                 textAlign: 'center',
                 background: 'transparent',
-                padding: '0.75rem 0',
+                padding: '0.5rem 0',
                 fontSize: '1rem',
-                fontWeight: 600,
+                fontWeight: 800,
                 boxShadow: 'none'
               }}
               min="1"
@@ -61,7 +61,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
             <button 
               type="button" 
               onClick={increment}
-              style={{ padding: '0.75rem 1rem', background: 'transparent', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}
+              style={{ padding: '0.5rem 1rem', background: 'transparent', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
             >
               +
             </button>
