@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,7 +27,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role }),
       });
 
       const data = await res.json();
@@ -145,6 +146,31 @@ export default function RegisterPage() {
                 color: '#1e293b'
               }}
             />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label htmlFor="role" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>
+              Account Type / Role
+            </label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              style={{
+                border: '2px solid #1e293b',
+                borderRadius: '8px',
+                padding: '0.75rem 1rem',
+                fontSize: '0.95rem',
+                outline: 'none',
+                background: '#ffffff',
+                color: '#1e293b',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <option value="user">Regular Customer</option>
+              <option value="admin">Store Admin (Resiliency Controls)</option>
+            </select>
           </div>
 
           <button

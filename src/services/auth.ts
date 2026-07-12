@@ -12,13 +12,13 @@ function hashPassword(password: string): string {
 }
 
 // Generate simple mock token: base64 encoded user info + simple signature
-function generateToken(user: { id: string; name: string; email: string }): string {
+function generateToken(user: { id: string; name: string; email: string; role?: string }): string {
   const payload = JSON.stringify(user);
   const signature = crypto.createHmac('sha256', 'sunny-secret-key').update(payload).digest('hex');
   return Buffer.from(JSON.stringify({ payload, signature })).toString('base64');
 }
 
-function verifyToken(token: string): { id: string; name: string; email: string } | null {
+function verifyToken(token: string): { id: string; name: string; email: string; role?: string } | null {
   try {
     const raw = Buffer.from(token, 'base64').toString('utf8');
     const { payload, signature } = JSON.parse(raw);
@@ -57,6 +57,11 @@ function sendJson(res: http.ServerResponse, data: any, status = 200) {
   res.end(JSON.stringify(data));
 }
 
+const failures = {
+  offline: false,
+  latency: 0
+};
+
 const server = http.createServer(async (req, res) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -71,9 +76,36 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url || '', `http://localhost:${PORT}`);
 
+  // 1. Handle Simulated Failure Controls
+  if (req.method === 'GET' && url.pathname === '/failures') {
+    return sendJson(res, failures);
+  }
+  if (req.method === 'POST' && url.pathname === '/configure-failures') {
+    try {
+      const body = await getJsonBody(req);
+      if (body.offline !== undefined) failures.offline = !!body.offline;
+      if (body.latency !== undefined) failures.latency = parseInt(body.latency) || 0;
+      console.log('[Auth Service] Failures configured:', failures);
+      return sendJson(res, { success: true, failures });
+    } catch (err: any) {
+      return sendJson(res, { error: 'Invalid failure config body', details: err.message }, 400);
+    }
+  }
+
+  // 2. Intercept requests for simulated failures
+  if (failures.offline && (url.pathname === '/login' || url.pathname === '/register' || url.pathname === '/verify')) {
+    res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ error: 'Auth Service Offline (Simulated Tech Issue)' }));
+    return;
+  }
+
+  if (failures.latency > 0 && (url.pathname === '/login' || url.pathname === '/register' || url.pathname === '/verify')) {
+    await new Promise(resolve => setTimeout(resolve, failures.latency));
+  }
+
   try {
     if (req.method === 'POST' && url.pathname === '/register') {
-      const { name, email, password } = await getJsonBody(req);
+      const { name, email, password, role } = await getJsonBody(req);
       
       if (!name || !email || !password) {
         return sendJson(res, { error: 'Missing name, email, or password' }, 400);
@@ -87,13 +119,14 @@ const server = http.createServer(async (req, res) => {
 
       const id = `usr-${crypto.randomBytes(4).toString('hex')}`;
       const passwordHash = hashPassword(password);
+      const userRole = role || 'user';
 
       await pool.query(
-        'INSERT INTO users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)',
-        [id, name, email, passwordHash]
+        'INSERT INTO users (id, name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5)',
+        [id, name, email, passwordHash, userRole]
       );
 
-      const userPayload = { id, name, email };
+      const userPayload = { id, name, email, role: userRole };
       const token = generateToken(userPayload);
 
       return sendJson(res, { success: true, user: userPayload, token }, 201);
@@ -118,7 +151,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { error: 'Invalid email or password' }, 400);
       }
 
-      const userPayload = { id: user.id, name: user.name, email: user.email };
+      const userPayload = { id: user.id, name: user.name, email: user.email, role: user.role };
       const token = generateToken(userPayload);
 
       return sendJson(res, { success: true, user: userPayload, token });

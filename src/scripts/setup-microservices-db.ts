@@ -93,24 +93,46 @@ async function setupAuthDb(client: Client) {
       name VARCHAR(255) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  // Seed default user if empty
-  const userCount = await client.query('SELECT COUNT(*) FROM users');
-  if (parseInt(userCount.rows[0].count) === 0) {
+  // Ensure role column exists if table was previously created
+  await client.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user'
+  `);
+
+  // Seed default user if not exists
+  const defaultUserCheck = await client.query('SELECT 1 FROM users WHERE email = $1', ['user@sunny.com']);
+  if (defaultUserCheck.rowCount === 0) {
     console.log('Seeding default user for Auth DB...');
     const userId = 'user-1';
     const email = 'user@sunny.com';
     const name = 'Sunny Explorer';
-    const password_hash = hashPassword('sunny123'); // Simple SHA256 hashed password
+    const password_hash = hashPassword('sunny123');
 
     await client.query(
-      `INSERT INTO users (id, name, email, password_hash) VALUES ($1, $2, $3, $4)`,
-      [userId, name, email, password_hash]
+      `INSERT INTO users (id, name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5)`,
+      [userId, name, email, password_hash, 'user']
     );
-    console.log(`Auth DB seeded: user@sunny.com / sunny123`);
+    console.log(`Auth DB seeded user: user@sunny.com / sunny123`);
+  }
+
+  // Seed default admin if not exists
+  const defaultAdminCheck = await client.query('SELECT 1 FROM users WHERE email = $1', ['admin@sunny.com']);
+  if (defaultAdminCheck.rowCount === 0) {
+    console.log('Seeding default admin for Auth DB...');
+    const adminId = 'admin-1';
+    const adminEmail = 'admin@sunny.com';
+    const adminName = 'Sunny Admin';
+    const adminPasswordHash = hashPassword('admin123');
+
+    await client.query(
+      `INSERT INTO users (id, name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5)`,
+      [adminId, adminName, adminEmail, adminPasswordHash, 'admin']
+    );
+    console.log(`Auth DB seeded admin: admin@sunny.com / admin123`);
   }
 }
 

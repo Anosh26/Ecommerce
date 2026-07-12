@@ -52,6 +52,16 @@ export default function Navbar() {
             )}
           </Link>
 
+          {user?.role === 'admin' && (
+            <Link 
+              href="/admin" 
+              className={`nav-link ${pathname === '/admin' ? 'active' : ''}`}
+              style={{ fontWeight: 700, color: '#d97706' }}
+            >
+              Admin Control
+            </Link>
+          )}
+
           {/* Authentication State Display */}
           <div style={{ borderLeft: '2px solid #1e293b', paddingLeft: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user ? (

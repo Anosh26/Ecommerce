@@ -31,6 +31,12 @@ function sendJson(res: http.ServerResponse, data: any, status = 200) {
   res.end(JSON.stringify(data));
 }
 
+const failures = {
+  offline: false,
+  latency: 0,
+  fail_charge: false
+};
+
 const server = http.createServer(async (req, res) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -44,6 +50,40 @@ const server = http.createServer(async (req, res) => {
   }
 
   const url = new URL(req.url || '', `http://localhost:${PORT}`);
+
+  // 1. Handle Simulated Failure Controls
+  if (req.method === 'GET' && url.pathname === '/failures') {
+    return sendJson(res, failures);
+  }
+  if (req.method === 'POST' && url.pathname === '/configure-failures') {
+    try {
+      const body = await getJsonBody(req);
+      if (body.offline !== undefined) failures.offline = !!body.offline;
+      if (body.latency !== undefined) failures.latency = parseInt(body.latency) || 0;
+      if (body.fail_charge !== undefined) failures.fail_charge = !!body.fail_charge;
+      console.log('[Payment Service] Failures configured:', failures);
+      return sendJson(res, { success: true, failures });
+    } catch (err: any) {
+      return sendJson(res, { error: 'Invalid failure config body', details: err.message }, 400);
+    }
+  }
+
+  // 2. Intercept requests for simulated failures
+  if (failures.offline && url.pathname === '/charge') {
+    res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ error: 'Payment Service Offline (Simulated Loss of Internet)' }));
+    return;
+  }
+
+  if (failures.latency > 0 && url.pathname === '/charge') {
+    await new Promise(resolve => setTimeout(resolve, failures.latency));
+  }
+
+  if (failures.fail_charge && url.pathname === '/charge') {
+    res.writeHead(402, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ success: false, error: 'Payment Gateway Decline (Simulated Transaction Failure)' }));
+    return;
+  }
 
   try {
     // POST /charge
