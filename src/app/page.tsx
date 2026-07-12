@@ -19,7 +19,9 @@ export default async function Home({ searchParams }: PageProps) {
   const minPrice = params.minPrice ? parseFloat(params.minPrice) : undefined;
   const maxPrice = params.maxPrice ? parseFloat(params.maxPrice) : undefined;
 
-  // Fetch products and categories via API Gateway on port 5000
+  const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
+
+  // Fetch products and categories via API Gateway
   let products: any[] = [];
   let categories: string[] = ['All'];
 
@@ -31,12 +33,12 @@ export default async function Home({ searchParams }: PageProps) {
     if (minPrice !== undefined && !isNaN(minPrice)) searchParamsObj.set('minPrice', minPrice.toString());
     if (maxPrice !== undefined && !isNaN(maxPrice)) searchParamsObj.set('maxPrice', maxPrice.toString());
 
-    const productsRes = await fetch(`http://localhost:5000/api/search/products?${searchParamsObj.toString()}`, { cache: 'no-store' });
+    const productsRes = await fetch(`${GATEWAY_URL}/api/search/products?${searchParamsObj.toString()}`, { cache: 'no-store' });
     if (productsRes.ok) {
       products = await productsRes.json();
     }
 
-    const categoriesRes = await fetch('http://localhost:5000/api/search/categories', { cache: 'no-store' });
+    const categoriesRes = await fetch(`${GATEWAY_URL}/api/search/categories`, { cache: 'no-store' });
     if (categoriesRes.ok) {
       categories = await categoriesRes.json();
     }

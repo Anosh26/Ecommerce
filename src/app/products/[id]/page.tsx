@@ -12,9 +12,10 @@ interface ProductPageProps {
 export default async function ProductPage({ params }: ProductPageProps) {
   const resolvedParams = await params;
   
+  const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
   let product: any = null;
   try {
-    const res = await fetch(`http://localhost:5000/api/search/products/${resolvedParams.id}`, { cache: 'no-store' });
+    const res = await fetch(`${GATEWAY_URL}/api/search/products/${resolvedParams.id}`, { cache: 'no-store' });
     if (res.ok) {
       product = await res.json();
     }

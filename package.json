@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "npx tsx src/scripts/start-local.ts",
+    "dev:docker": "docker build -t ecommerce-app . && docker compose up",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

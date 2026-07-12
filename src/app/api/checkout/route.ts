@@ -4,8 +4,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Call our Buy microservice via the API Gateway on port 5000
-    const gatewayRes = await fetch('http://localhost:5000/api/buy/checkout', {
+    const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
+    const gatewayRes = await fetch(`${GATEWAY_URL}/api/buy/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

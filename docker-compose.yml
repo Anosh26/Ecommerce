@@ -1,0 +1,135 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: paaptol-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
+      POSTGRES_DB: paaptol
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-setup:
+    image: ecommerce-app
+    container_name: paaptol-db-setup
+    command: npx tsx src/scripts/setup-microservices-db.ts
+    environment:
+      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol
+    depends_on:
+      db:
+        condition: service_healthy
+
+  auth-service:
+    image: ecommerce-app
+    container_name: paaptol-auth-service
+    command: npx tsx src/services/auth.ts
+    environment:
+      AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_auth
+    ports:
+      - "3001:3001"
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+
+  search-service:
+    image: ecommerce-app
+    container_name: paaptol-search-service
+    command: npx tsx src/services/search.ts
+    environment:
+      SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_search
+    ports:
+      - "3002:3002"
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+
+  cart-service:
+    image: ecommerce-app
+    container_name: paaptol-cart-service
+    command: npx tsx src/services/cart.ts
+    environment:
+      CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_cart
+    ports:
+      - "3003:3003"
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+
+  buy-service:
+    image: ecommerce-app
+    container_name: paaptol-buy-service
+    command: npx tsx src/services/buy.ts
+    environment:
+      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_buy
+      SEARCH_SERVICE_URL: http://search-service:3002
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+    ports:
+      - "3004:3004"
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+      search-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+
+  payment-service:
+    image: ecommerce-app
+    container_name: paaptol-payment-service
+    command: npx tsx src/services/payment.ts
+    environment:
+      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_payment
+    ports:
+      - "3005:3005"
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+
+  gateway-service:
+    image: ecommerce-app
+    container_name: paaptol-gateway-service
+    command: npx tsx src/services/gateway.ts
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3001
+      SEARCH_SERVICE_URL: http://search-service:3002
+      CART_SERVICE_URL: http://cart-service:3003
+      BUY_SERVICE_URL: http://buy-service:3004
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+    ports:
+      - "5000:5000"
+    depends_on:
+      auth-service:
+        condition: service_started
+      search-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      buy-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+
+  frontend:
+    image: ecommerce-app
+    container_name: paaptol-frontend
+    command: npm run dev
+    environment:
+      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol
+      NEXT_GATEWAY_URL: http://gateway-service:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      gateway-service:
+        condition: service_started
+      db-setup:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

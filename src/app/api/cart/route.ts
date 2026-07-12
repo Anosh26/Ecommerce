@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const gatewayRes = await fetch(`http://localhost:5000/api/cart?userId=${userId}`, {
+    const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
+    const gatewayRes = await fetch(`${GATEWAY_URL}/api/cart?userId=${userId}`, {
       cache: 'no-store'
     });
     const data = await gatewayRes.json();

@@ -12,7 +12,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json();
     
-    const gatewayRes = await fetch(`http://localhost:5000/api/auth/${action}`, {
+    const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
+    const gatewayRes = await fetch(`${GATEWAY_URL}/api/auth/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
