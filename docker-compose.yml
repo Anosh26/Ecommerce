@@ -1,15 +1,83 @@
 services:
-  db:
+  db-auth:
     image: postgres:16-alpine
-    container_name: paaptol-db
+    container_name: paaptol-auth-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
-      POSTGRES_DB: paaptol
+      POSTGRES_DB: paaptol_auth
     ports:
-      - "5432:5432"
+      - "54321:5432"
     volumes:
-      - pgdata:/var/lib/postgresql
+      - pgdata_auth:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-search:
+    image: postgres:16-alpine
+    container_name: paaptol-search-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
+      POSTGRES_DB: paaptol_search
+    ports:
+      - "54322:5432"
+    volumes:
+      - pgdata_search:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-cart:
+    image: postgres:16-alpine
+    container_name: paaptol-cart-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
+      POSTGRES_DB: paaptol_cart
+    ports:
+      - "54323:5432"
+    volumes:
+      - pgdata_cart:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-buy:
+    image: postgres:16-alpine
+    container_name: paaptol-buy-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
+      POSTGRES_DB: paaptol_buy
+    ports:
+      - "54324:5432"
+    volumes:
+      - pgdata_buy:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-payment:
+    image: postgres:16-alpine
+    container_name: paaptol-payment-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
+      POSTGRES_DB: paaptol_payment
+    ports:
+      - "54325:5432"
+    volumes:
+      - pgdata_payment:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 3s
@@ -21,9 +89,22 @@ services:
     container_name: paaptol-db-setup
     command: npx tsx src/scripts/setup-microservices-db.ts
     environment:
-      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol
+      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
+      AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
+      SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-search:5432/paaptol_search
+      CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-cart:5432/paaptol_cart
+      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-buy:5432/paaptol_buy
+      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-payment:5432/paaptol_payment
     depends_on:
-      db:
+      db-auth:
+        condition: service_healthy
+      db-search:
+        condition: service_healthy
+      db-cart:
+        condition: service_healthy
+      db-buy:
+        condition: service_healthy
+      db-payment:
         condition: service_healthy
 
   auth-service:
@@ -31,7 +112,7 @@ services:
     container_name: paaptol-auth-service
     command: npx tsx src/services/auth.ts
     environment:
-      AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_auth
+      AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
     ports:
       - "3001:3001"
     depends_on:
@@ -43,7 +124,7 @@ services:
     container_name: paaptol-search-service
     command: npx tsx src/services/search.ts
     environment:
-      SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_search
+      SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-search:5432/paaptol_search
     ports:
       - "3002:3002"
     depends_on:
@@ -55,7 +136,7 @@ services:
     container_name: paaptol-cart-service
     command: npx tsx src/services/cart.ts
     environment:
-      CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_cart
+      CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-cart:5432/paaptol_cart
     ports:
       - "3003:3003"
     depends_on:
@@ -67,7 +148,7 @@ services:
     container_name: paaptol-buy-service
     command: npx tsx src/services/buy.ts
     environment:
-      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_buy
+      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-buy:5432/paaptol_buy
       SEARCH_SERVICE_URL: http://search-service:3002
       PAYMENT_SERVICE_URL: http://payment-service:3005
     ports:
@@ -85,7 +166,7 @@ services:
     container_name: paaptol-payment-service
     command: npx tsx src/services/payment.ts
     environment:
-      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol_payment
+      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-payment:5432/paaptol_payment
     ports:
       - "3005:3005"
     depends_on:
@@ -121,7 +202,6 @@ services:
     container_name: paaptol-frontend
     command: npm run dev
     environment:
-      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db:5432/paaptol
       NEXT_GATEWAY_URL: http://gateway-service:5000
     ports:
       - "3000:3000"
@@ -132,4 +212,8 @@ services:
         condition: service_completed_successfully
 
 volumes:
-  pgdata:
+  pgdata_auth:
+  pgdata_search:
+  pgdata_cart:
+  pgdata_buy:
+  pgdata_payment:

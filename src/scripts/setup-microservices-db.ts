@@ -29,44 +29,60 @@ async function main() {
   const decodedPassword = decodeURIComponent(password);
 
   // 1. Connect to default 'postgres' database to ensure our 5 databases exist
-  const defaultClient = new Client({
-    user: decodedUser,
-    password: decodedPassword,
-    host,
-    port: parseInt(port),
-    database: 'postgres'
-  });
+  // We ONLY do this if we are running in single-postgres mode (i.e. AUTH_DATABASE_URL is not set).
+  // In multi-postgres (isolated) mode, each database container is created with its correct database pre-created.
+  if (!process.env.AUTH_DATABASE_URL) {
+    const defaultClient = new Client({
+      user: decodedUser,
+      password: decodedPassword,
+      host,
+      port: parseInt(port),
+      database: 'postgres'
+    });
 
-  try {
-    await defaultClient.connect();
-    
-    for (const db of databases) {
-      const dbCheck = await defaultClient.query(
-        `SELECT 1 FROM pg_database WHERE datname = $1`,
-        [db.name]
-      );
-
-      if (dbCheck.rowCount === 0) {
-        console.log(`Database '${db.name}' does not exist. Creating...`);
-        // Note: CREATE DATABASE queries cannot run inside transaction blocks and cannot use parameters
-        await defaultClient.query(`CREATE DATABASE ${db.name}`);
-        console.log(`Database '${db.name}' created successfully.`);
-      } else {
-        console.log(`Database '${db.name}' already exists.`);
-      }
-    }
-  } catch (err) {
-    console.error('Warning: Could not connect to default postgres db to ensure DB creation:', err);
-    console.log('Attempting direct connection to targets, assuming target databases already exist...');
-  } finally {
     try {
-      await defaultClient.end();
-    } catch {}
+      await defaultClient.connect();
+      
+      for (const db of databases) {
+        const dbCheck = await defaultClient.query(
+          `SELECT 1 FROM pg_database WHERE datname = $1`,
+          [db.name]
+        );
+
+        if (dbCheck.rowCount === 0) {
+          console.log(`Database '${db.name}' does not exist. Creating...`);
+          // Note: CREATE DATABASE queries cannot run inside transaction blocks and cannot use parameters
+          await defaultClient.query(`CREATE DATABASE ${db.name}`);
+          console.log(`Database '${db.name}' created successfully.`);
+        } else {
+          console.log(`Database '${db.name}' already exists.`);
+        }
+      }
+    } catch (err) {
+      console.error('Warning: Could not connect to default postgres db to ensure DB creation:', err);
+      console.log('Attempting direct connection to targets, assuming target databases already exist...');
+    } finally {
+      try {
+        await defaultClient.end();
+      } catch {}
+    }
+  } else {
+    console.log('Detected individual database configuration (Docker mode). Skipping database creation phase.');
   }
 
   // 2. Set up each database schema and tables
   for (const db of databases) {
-    const dbConnectionString = `postgresql://${user}:${password}@${host}:${port}/${db.name}`;
+    let dbConnectionString = '';
+    if (db.name === 'paaptol_auth') dbConnectionString = process.env.AUTH_DATABASE_URL || '';
+    else if (db.name === 'paaptol_search') dbConnectionString = process.env.SEARCH_DATABASE_URL || '';
+    else if (db.name === 'paaptol_cart') dbConnectionString = process.env.CART_DATABASE_URL || '';
+    else if (db.name === 'paaptol_buy') dbConnectionString = process.env.BUY_DATABASE_URL || '';
+    else if (db.name === 'paaptol_payment') dbConnectionString = process.env.PAYMENT_DATABASE_URL || '';
+
+    if (!dbConnectionString) {
+      dbConnectionString = `postgresql://${user}:${password}@${host}:${port}/${db.name}`;
+    }
+
     const client = new Client({ connectionString: dbConnectionString });
     
     try {
