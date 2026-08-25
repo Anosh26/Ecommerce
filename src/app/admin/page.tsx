@@ -173,7 +173,7 @@ export default function AdminDashboard() {
           padding: '2rem',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'between'
+          justifyContent: 'space-between'
         }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
               <input 
                 type="checkbox" 
                 checked={authFailures.offline} 
-                onChange={(e) => handleSaveAuth(e.target.checked, authFailures.latency)}
+                onChange={(e) => setAuthFailures(prev => ({ ...prev, offline: e.target.checked }))}
                 style={{ width: '22px', height: '22px', cursor: 'pointer' }}
               />
             </div>
@@ -220,13 +220,32 @@ export default function AdminDashboard() {
                 step="500" 
                 value={authFailures.latency}
                 onChange={(e) => setAuthFailures(prev => ({ ...prev, latency: parseInt(e.target.value) }))}
-                onMouseUp={() => handleSaveAuth(authFailures.offline, authFailures.latency)}
                 style={{ width: '100%', cursor: 'pointer' }}
               />
               <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', marginTop: '0.25rem' }}>
                 Delays auth processing to test frontend load states.
               </span>
             </div>
+
+            <button
+              onClick={() => handleSaveAuth(authFailures.offline, authFailures.latency)}
+              style={{
+                width: '100%',
+                background: '#1e293b',
+                color: '#ffffff',
+                border: '3px solid #1e293b',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                boxShadow: '3px 3px 0px #d97706',
+                transition: 'all 0.15s ease',
+                marginTop: '1rem'
+              }}
+            >
+              Apply Auth Settings
+            </button>
           </div>
         </div>
 
@@ -239,7 +258,7 @@ export default function AdminDashboard() {
           padding: '2rem',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'between'
+          justifyContent: 'space-between'
         }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -271,7 +290,7 @@ export default function AdminDashboard() {
               <input 
                 type="checkbox" 
                 checked={paymentFailures.offline} 
-                onChange={(e) => handleSavePayment(e.target.checked, paymentFailures.latency, paymentFailures.fail_charge)}
+                onChange={(e) => setPaymentFailures(prev => ({ ...prev, offline: e.target.checked }))}
                 style={{ width: '22px', height: '22px', cursor: 'pointer' }}
               />
             </div>
@@ -285,13 +304,13 @@ export default function AdminDashboard() {
               <input 
                 type="checkbox" 
                 checked={paymentFailures.fail_charge} 
-                onChange={(e) => handleSavePayment(paymentFailures.offline, paymentFailures.latency, e.target.checked)}
+                onChange={(e) => setPaymentFailures(prev => ({ ...prev, fail_charge: e.target.checked }))}
                 style={{ width: '22px', height: '22px', cursor: 'pointer' }}
               />
             </div>
 
             {/* Latency Slider */}
-            <div style={{ padding: '1rem', background: '#f8fafc', border: '2px solid #1e293b', borderRadius: '10px' }}>
+            <div style={{ padding: '1rem', background: '#f8fafc', border: '2px solid #1e293b', borderRadius: '10px', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.5rem' }}>
                 <span>Simulated Latency</span>
                 <span style={{ color: '#d97706' }}>{paymentFailures.latency} ms</span>
@@ -303,10 +322,29 @@ export default function AdminDashboard() {
                 step="500" 
                 value={paymentFailures.latency}
                 onChange={(e) => setPaymentFailures(prev => ({ ...prev, latency: parseInt(e.target.value) }))}
-                onMouseUp={() => handleSavePayment(paymentFailures.offline, paymentFailures.latency, paymentFailures.fail_charge)}
                 style={{ width: '100%', cursor: 'pointer' }}
               />
             </div>
+
+            <button
+              onClick={() => handleSavePayment(paymentFailures.offline, paymentFailures.latency, paymentFailures.fail_charge)}
+              style={{
+                width: '100%',
+                background: '#1e293b',
+                color: '#ffffff',
+                border: '3px solid #1e293b',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                boxShadow: '3px 3px 0px #d97706',
+                transition: 'all 0.15s ease',
+                marginTop: '1rem'
+              }}
+            >
+              Apply Payment Settings
+            </button>
           </div>
         </div>
 
