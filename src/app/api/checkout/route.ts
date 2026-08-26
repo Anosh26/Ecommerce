@@ -4,6 +4,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    if (process.env.IS_MONOLITH === 'true' || !process.env.NEXT_GATEWAY_URL) {
+      const { createOrder } = await import('@/lib/db');
+      const order = await createOrder(body);
+      return NextResponse.json({
+        success: true,
+        message: 'Payment processed successfully! Your order has been placed.',
+        order
+      });
+    }
+
     const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
     const gatewayRes = await fetch(`${GATEWAY_URL}/api/buy/checkout`, {
       method: 'POST',

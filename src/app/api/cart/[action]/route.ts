@@ -11,7 +11,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   
   try {
     const body = await request.json();
-    
+
+    if (process.env.IS_MONOLITH === 'true' || !process.env.NEXT_GATEWAY_URL) {
+      return NextResponse.json({ success: true, action, items: body.items || [] });
+    }
+
     const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
     const gatewayRes = await fetch(`${GATEWAY_URL}/api/cart/${action}`, {
       method: 'POST',

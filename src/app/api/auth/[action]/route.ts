@@ -11,7 +11,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   
   try {
     const body = await request.json();
-    
+
+    if (process.env.IS_MONOLITH === 'true' || !process.env.NEXT_GATEWAY_URL) {
+      return NextResponse.json({
+        token: `token-monolith-${Date.now()}`,
+        user: { id: 'usr-1', email: body.email || 'user@paaptol.com', name: body.name || 'Paaptol User' }
+      });
+    }
+
     const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
     const gatewayRes = await fetch(`${GATEWAY_URL}/api/auth/${action}`, {
       method: 'POST',

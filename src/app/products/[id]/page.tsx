@@ -14,13 +14,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
   
   const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
   let product: any = null;
-  try {
-    const res = await fetch(`${GATEWAY_URL}/api/search/products/${resolvedParams.id}`, { cache: 'no-store' });
-    if (res.ok) {
-      product = await res.json();
+  if (process.env.IS_MONOLITH === 'true' || !process.env.NEXT_GATEWAY_URL) {
+    try {
+      const { getProductById } = await import('@/lib/db');
+      product = await getProductById(resolvedParams.id);
+    } catch (err) {
+      console.error('Monolithic getProductById failed:', err);
     }
-  } catch (err) {
-    console.error('Failed to fetch product details:', err);
+  } else {
+    try {
+      const res = await fetch(`${GATEWAY_URL}/api/search/products/${resolvedParams.id}`, { cache: 'no-store' });
+      if (res.ok) {
+        product = await res.json();
+      }
+    } catch (err) {
+      console.error('Failed to fetch product details:', err);
+    }
   }
 
   if (!product) {

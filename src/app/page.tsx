@@ -21,29 +21,39 @@ export default async function Home({ searchParams }: PageProps) {
 
   const GATEWAY_URL = process.env.NEXT_GATEWAY_URL || 'http://localhost:5000';
 
-  // Fetch products and categories via API Gateway
+  // Fetch products and categories (monolithic direct DB fallback or microservice API gateway)
   let products: any[] = [];
   let categories: string[] = ['All'];
 
-  try {
-    const searchParamsObj = new URLSearchParams();
-    if (query) searchParamsObj.set('query', query);
-    if (category) searchParamsObj.set('category', category);
-    if (sortBy) searchParamsObj.set('sortBy', sortBy);
-    if (minPrice !== undefined && !isNaN(minPrice)) searchParamsObj.set('minPrice', minPrice.toString());
-    if (maxPrice !== undefined && !isNaN(maxPrice)) searchParamsObj.set('maxPrice', maxPrice.toString());
-
-    const productsRes = await fetch(`${GATEWAY_URL}/api/search/products?${searchParamsObj.toString()}`, { cache: 'no-store' });
-    if (productsRes.ok) {
-      products = await productsRes.json();
+  if (process.env.IS_MONOLITH === 'true' || !process.env.NEXT_GATEWAY_URL) {
+    try {
+      const { searchProducts, getCategories } = await import('@/lib/search');
+      products = await searchProducts({ query, category, minPrice, maxPrice, sortBy });
+      categories = await getCategories();
+    } catch (err) {
+      console.error('Monolithic DB query failed:', err);
     }
+  } else {
+    try {
+      const searchParamsObj = new URLSearchParams();
+      if (query) searchParamsObj.set('query', query);
+      if (category) searchParamsObj.set('category', category);
+      if (sortBy) searchParamsObj.set('sortBy', sortBy);
+      if (minPrice !== undefined && !isNaN(minPrice)) searchParamsObj.set('minPrice', minPrice.toString());
+      if (maxPrice !== undefined && !isNaN(maxPrice)) searchParamsObj.set('maxPrice', maxPrice.toString());
 
-    const categoriesRes = await fetch(`${GATEWAY_URL}/api/search/categories`, { cache: 'no-store' });
-    if (categoriesRes.ok) {
-      categories = await categoriesRes.json();
+      const productsRes = await fetch(`${GATEWAY_URL}/api/search/products?${searchParamsObj.toString()}`, { cache: 'no-store' });
+      if (productsRes.ok) {
+        products = await productsRes.json();
+      }
+
+      const categoriesRes = await fetch(`${GATEWAY_URL}/api/search/categories`, { cache: 'no-store' });
+      if (categoriesRes.ok) {
+        categories = await categoriesRes.json();
+      }
+    } catch (err) {
+      console.error('Failed to fetch from API Gateway:', err);
     }
-  } catch (err) {
-    console.error('Failed to fetch from API Gateway:', err);
   }
 
   return (
