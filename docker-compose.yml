@@ -85,6 +85,7 @@ services:
       retries: 5
 
   db-setup:
+    build: .
     image: ecommerce-app
     container_name: paaptol-db-setup
     command: npx tsx src/scripts/setup-microservices-db.ts
@@ -108,6 +109,7 @@ services:
         condition: service_healthy
 
   auth-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-auth-service
     command: npx tsx src/services/auth.ts
@@ -120,6 +122,7 @@ services:
         condition: service_completed_successfully
 
   search-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-search-service
     command: npx tsx src/services/search.ts
@@ -132,6 +135,7 @@ services:
         condition: service_completed_successfully
 
   cart-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-cart-service
     command: npx tsx src/services/cart.ts
@@ -144,6 +148,7 @@ services:
         condition: service_completed_successfully
 
   buy-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-buy-service
     command: npx tsx src/services/buy.ts
@@ -162,6 +167,7 @@ services:
         condition: service_started
 
   payment-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-payment-service
     command: npx tsx src/services/payment.ts
@@ -174,6 +180,7 @@ services:
         condition: service_completed_successfully
 
   gateway-service:
+    build: .
     image: ecommerce-app
     container_name: paaptol-gateway-service
     command: npx tsx src/services/gateway.ts
@@ -198,6 +205,7 @@ services:
         condition: service_started
 
   frontend:
+    build: .
     image: ecommerce-app
     container_name: paaptol-frontend
     command: npm run dev
