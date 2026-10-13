@@ -9,12 +9,13 @@ services:
     ports:
       - "54321:5432"
     volumes:
-      - pgdata_auth:/var/lib/postgresql
+      - pgdata_auth:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_auth"]
+      interval: 4s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
 
   db-search:
     image: postgres:16-alpine
@@ -26,12 +27,13 @@ services:
     ports:
       - "54322:5432"
     volumes:
-      - pgdata_search:/var/lib/postgresql
+      - pgdata_search:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_search"]
+      interval: 4s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
 
   db-cart:
     image: postgres:16-alpine
@@ -43,12 +45,13 @@ services:
     ports:
       - "54323:5432"
     volumes:
-      - pgdata_cart:/var/lib/postgresql
+      - pgdata_cart:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_cart"]
+      interval: 4s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
 
   db-buy:
     image: postgres:16-alpine
@@ -60,12 +63,13 @@ services:
     ports:
       - "54324:5432"
     volumes:
-      - pgdata_buy:/var/lib/postgresql
+      - pgdata_buy:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_buy"]
+      interval: 4s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
 
   db-payment:
     image: postgres:16-alpine
@@ -77,12 +81,13 @@ services:
     ports:
       - "54325:5432"
     volumes:
-      - pgdata_payment:/var/lib/postgresql
+      - pgdata_payment:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_payment"]
+      interval: 4s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
 
   db-setup:
     build: .
