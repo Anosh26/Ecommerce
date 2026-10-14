@@ -1,22 +1,28 @@
-# PowerShell script to stop and remove all Paaptol Docker containers and network
+# PowerShell script to stop and remove Paaptol 4-Microservices & Databases containers
 
-Write-Host "============================================================" -ForegroundColor Yellow
-Write-Host " Stopping & Cleaning Up Paaptol Docker Containers " -ForegroundColor Yellow
-Write-Host "============================================================" -ForegroundColor Yellow
+$ErrorActionPreference = "SilentlyContinue"
+
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host " Stopping & Cleaning Up Paaptol 4-Microservices & Databases  " -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
 
 $containers = @(
     "paaptol-frontend",
     "paaptol-gateway-service",
-    "paaptol-buy-service",
-    "paaptol-payment-service",
+    "paaptol-db-sync-service",
+    "paaptol-order-service",
     "paaptol-cart-service",
     "paaptol-search-service",
     "paaptol-auth-service",
-    "paaptol-payment-db",
-    "paaptol-buy-db",
+    "paaptol-order-db",
     "paaptol-cart-db",
     "paaptol-search-db",
-    "paaptol-auth-db"
+    "paaptol-auth-db",
+    # Legacy names cleanup
+    "paaptol-buy-service",
+    "paaptol-payment-service",
+    "paaptol-payment-db",
+    "paaptol-buy-db"
 )
 
 foreach ($c in $containers) {

@@ -27,7 +27,7 @@ try {
   console.error('Failed to load .env.local:', e);
 }
 
-// Generate microservice DB URLs from main DATABASE_URL
+// Generate microservice DB URLs from main DATABASE_URL for 4 microservices
 const mainDbUrl = process.env.DATABASE_URL || 'postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@localhost:5432/paaptol';
 const match = mainDbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
 if (match) {
@@ -35,24 +35,22 @@ if (match) {
   process.env.AUTH_DATABASE_URL = process.env.AUTH_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_auth`;
   process.env.SEARCH_DATABASE_URL = process.env.SEARCH_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_search`;
   process.env.CART_DATABASE_URL = process.env.CART_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_cart`;
-  process.env.BUY_DATABASE_URL = process.env.BUY_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_buy`;
-  process.env.PAYMENT_DATABASE_URL = process.env.PAYMENT_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_payment`;
+  process.env.ORDER_DATABASE_URL = process.env.ORDER_DATABASE_URL || `postgresql://${user}:${password}@${host}:${port}/paaptol_order`;
 }
 
+// Exactly 4 Microservices + API Gateway + DB Sync Engine
 const services = [
-  { name: 'Auth Service', path: path.resolve('./src/services/auth.ts') },
-  { name: 'Search Service', path: path.resolve('./src/services/search.ts') },
-  { name: 'Cart Service', path: path.resolve('./src/services/cart.ts') },
-  { name: 'Buy Service', path: path.resolve('./src/services/buy.ts') },
-  { name: 'Payment Service', path: path.resolve('./src/services/payment.ts') },
-  { name: 'API Gateway', path: path.resolve('./src/services/gateway.ts') },
+  { name: '1. Auth Service (Port 3001)', path: path.resolve('./src/services/auth.ts') },
+  { name: '2. Search / Catalog Service (Port 3002)', path: path.resolve('./src/services/search.ts') },
+  { name: '3. Cart Service (Port 3003)', path: path.resolve('./src/services/cart.ts') },
+  { name: '4. Order & Payment Service (Port 3004)', path: path.resolve('./src/services/order.ts') },
+  { name: 'API Gateway Proxy (Port 5000)', path: path.resolve('./src/services/gateway.ts') },
+  { name: 'DB Sync Engine (Port 3006)', path: path.resolve('./src/services/db-sync.ts') },
 ];
 
 function spawnWorker(serviceName: string, servicePath: string) {
-  // Find the absolute path of ts-node/register to ensure worker thread can resolve it
   const tsNodeRegister = require.resolve('ts-node/register').replace(/\\/g, '\\\\');
   
-  // Spawn a worker thread and compile/run the TypeScript file using ts-node register hook
   const workerCode = `
     const path = require('path');
     require('${tsNodeRegister}');
@@ -74,6 +72,6 @@ function spawnWorker(serviceName: string, servicePath: string) {
   return worker;
 }
 
-console.log('Booting all backend microservices on parallel worker threads...');
+console.log('Booting 4 microservices + Gateway + DB Sync Engine on parallel worker threads...');
 services.forEach(s => spawnWorker(s.name, s.path));
 console.log('All backend services spawned. Keep this process running.');

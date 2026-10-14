@@ -11,11 +11,11 @@ services:
     volumes:
       - pgdata_auth:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_auth"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d paaptol_auth" ]
       interval: 4s
       timeout: 5s
       retries: 10
-      start_period: 25s
+      start_period: 20s
 
   db-search:
     image: postgres:16-alpine
@@ -29,11 +29,11 @@ services:
     volumes:
       - pgdata_search:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_search"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d paaptol_search" ]
       interval: 4s
       timeout: 5s
       retries: 10
-      start_period: 25s
+      start_period: 20s
 
   db-cart:
     image: postgres:16-alpine
@@ -47,47 +47,29 @@ services:
     volumes:
       - pgdata_cart:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_cart"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d paaptol_cart" ]
       interval: 4s
       timeout: 5s
       retries: 10
-      start_period: 25s
+      start_period: 20s
 
-  db-buy:
+  db-order:
     image: postgres:16-alpine
-    container_name: paaptol-buy-db
+    container_name: paaptol-order-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
-      POSTGRES_DB: paaptol_buy
+      POSTGRES_DB: paaptol_order
     ports:
       - "54324:5432"
     volumes:
-      - pgdata_buy:/var/lib/postgresql/data
+      - pgdata_order:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_buy"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d paaptol_order" ]
       interval: 4s
       timeout: 5s
       retries: 10
-      start_period: 25s
-
-  db-payment:
-    image: postgres:16-alpine
-    container_name: paaptol-payment-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Qwyhao268910_@&[+619hsksh2901h
-      POSTGRES_DB: paaptol_payment
-    ports:
-      - "54325:5432"
-    volumes:
-      - pgdata_payment:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d paaptol_payment"]
-      interval: 4s
-      timeout: 5s
-      retries: 10
-      start_period: 25s
+      start_period: 20s
 
   db-setup:
     build: .
@@ -95,12 +77,10 @@ services:
     container_name: paaptol-db-setup
     command: npx tsx src/scripts/setup-microservices-db.ts
     environment:
-      DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
       AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
       SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-search:5432/paaptol_search
       CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-cart:5432/paaptol_cart
-      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-buy:5432/paaptol_buy
-      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-payment:5432/paaptol_payment
+      ORDER_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-order:5432/paaptol_order
     depends_on:
       db-auth:
         condition: service_healthy
@@ -108,9 +88,7 @@ services:
         condition: service_healthy
       db-cart:
         condition: service_healthy
-      db-buy:
-        condition: service_healthy
-      db-payment:
+      db-order:
         condition: service_healthy
 
   auth-service:
@@ -152,15 +130,14 @@ services:
       db-setup:
         condition: service_completed_successfully
 
-  buy-service:
+  order-service:
     build: .
     image: ecommerce-app
-    container_name: paaptol-buy-service
-    command: npx tsx src/services/buy.ts
+    container_name: paaptol-order-service
+    command: npx tsx src/services/order.ts
     environment:
-      BUY_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-buy:5432/paaptol_buy
+      ORDER_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-order:5432/paaptol_order
       SEARCH_SERVICE_URL: http://search-service:3002
-      PAYMENT_SERVICE_URL: http://payment-service:3005
     ports:
       - "3004:3004"
     depends_on:
@@ -168,18 +145,19 @@ services:
         condition: service_completed_successfully
       search-service:
         condition: service_started
-      payment-service:
-        condition: service_started
 
-  payment-service:
+  db-sync-service:
     build: .
     image: ecommerce-app
-    container_name: paaptol-payment-service
-    command: npx tsx src/services/payment.ts
+    container_name: paaptol-db-sync-service
+    command: npx tsx src/services/db-sync.ts
     environment:
-      PAYMENT_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-payment:5432/paaptol_payment
+      AUTH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-auth:5432/paaptol_auth
+      SEARCH_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-search:5432/paaptol_search
+      CART_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-cart:5432/paaptol_cart
+      ORDER_DATABASE_URL: postgresql://postgres:Qwyhao268910_%40%26%5B%2B619hsksh2901h@db-order:5432/paaptol_order
     ports:
-      - "3005:3005"
+      - "3006:3006"
     depends_on:
       db-setup:
         condition: service_completed_successfully
@@ -193,8 +171,8 @@ services:
       AUTH_SERVICE_URL: http://auth-service:3001
       SEARCH_SERVICE_URL: http://search-service:3002
       CART_SERVICE_URL: http://cart-service:3003
-      BUY_SERVICE_URL: http://buy-service:3004
-      PAYMENT_SERVICE_URL: http://payment-service:3005
+      ORDER_SERVICE_URL: http://order-service:3004
+      SYNC_SERVICE_URL: http://db-sync-service:3006
     ports:
       - "5000:5000"
     depends_on:
@@ -204,9 +182,9 @@ services:
         condition: service_started
       cart-service:
         condition: service_started
-      buy-service:
+      order-service:
         condition: service_started
-      payment-service:
+      db-sync-service:
         condition: service_started
 
   frontend:
@@ -228,5 +206,4 @@ volumes:
   pgdata_auth:
   pgdata_search:
   pgdata_cart:
-  pgdata_buy:
-  pgdata_payment:
+  pgdata_order:

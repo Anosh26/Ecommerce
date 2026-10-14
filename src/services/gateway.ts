@@ -2,12 +2,17 @@ import * as http from 'http';
 
 const PORT = 5000;
 
+// Internal routing table mapping public API prefixes to the 4 internal microservices
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || process.env.BUY_SERVICE_URL || 'http://localhost:3004';
+
 const ROUTING_TABLE: Record<string, string> = {
   '/api/auth': process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
   '/api/search': process.env.SEARCH_SERVICE_URL || 'http://localhost:3002',
   '/api/cart': process.env.CART_SERVICE_URL || 'http://localhost:3003',
-  '/api/buy': process.env.BUY_SERVICE_URL || 'http://localhost:3004',
-  '/api/payment': process.env.PAYMENT_SERVICE_URL || 'http://localhost:3005',
+  '/api/buy': ORDER_SERVICE_URL,
+  '/api/payment': ORDER_SERVICE_URL,
+  '/api/order': ORDER_SERVICE_URL,
+  '/api/sync': process.env.SYNC_SERVICE_URL || 'http://localhost:3006',
 };
 
 function getRawBody(req: http.IncomingMessage): Promise<Buffer> {
@@ -42,6 +47,21 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url || '', `http://localhost:${PORT}`);
   
+  // Health check for Cloud Load Balancer / External Monitoring
+  if (url.pathname === '/health' || url.pathname === '/') {
+    return sendJson(res, {
+      status: 'healthy',
+      service: 'api-gateway',
+      microservices: {
+        auth: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+        search: process.env.SEARCH_SERVICE_URL || 'http://localhost:3002',
+        cart: process.env.CART_SERVICE_URL || 'http://localhost:3003',
+        order: ORDER_SERVICE_URL,
+        sync: process.env.SYNC_SERVICE_URL || 'http://localhost:3006'
+      }
+    });
+  }
+
   // Find matching route prefix
   let routePrefix = '';
   for (const prefix in ROUTING_TABLE) {

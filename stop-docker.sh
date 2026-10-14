@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 
 echo "============================================================"
-echo " Stopping & Cleaning Up Paaptol Docker Containers "
+echo " Stopping & Cleaning Up Paaptol 4-Microservices & Databases  "
 echo "============================================================"
 
 containers=(
     "paaptol-frontend"
     "paaptol-gateway-service"
-    "paaptol-buy-service"
-    "paaptol-payment-service"
+    "paaptol-db-sync-service"
+    "paaptol-order-service"
     "paaptol-cart-service"
     "paaptol-search-service"
     "paaptol-auth-service"
-    "paaptol-payment-db"
-    "paaptol-buy-db"
+    "paaptol-order-db"
     "paaptol-cart-db"
     "paaptol-search-db"
     "paaptol-auth-db"
+    # Legacy names cleanup
+    "paaptol-buy-service"
+    "paaptol-payment-service"
+    "paaptol-payment-db"
+    "paaptol-buy-db"
 )
 
 for c in "${containers[@]}"; do
